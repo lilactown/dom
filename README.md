@@ -16,6 +16,18 @@ town.lilac/dom {:git/url "https://github.com/lilactown/dom"
 
 ## Usage
 
+The library exposes a `$` macro that allows one to create elements that are then
+diffed against the existing nodes on the page and patched accordingly.
+No virtual DOM is kept in memory.
+
+There are helpful macros that wrap `$` for specific elements like `div`,
+`button`, `input`, etc. With these, the library provides a simple DSL for
+constructing elements.
+
+To create an app, you need a function that constructs these "DOM expressions,"
+which will be called via `patch` function with the root node of the app when
+necessary. State management is left as an exercise to the reader.
+
 ### API
 
 See `town.lilac.dom` docstrings.
