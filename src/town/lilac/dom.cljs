@@ -44,25 +44,30 @@
 (comment
   (def *state (atom {:text "bonjour"}))
 
+  (defn on-change
+    [text]
+    (swap! *state assoc :text text))
+
   (defn example
-   []
-   ($ "div"
-      {:style {:fontFamily "sans-serif"}}
-      ($ "input"
-         {:style {:border "1px solid red"}
-          :oninput (fn [e]
-                     (swap! *state assoc :text (.. e -target -value)))
-          :value (:text @*state)})
-      ($ "div" (text (:text @*state)))))
+    [state on-change]
+    ($ "div"
+       {:style {:fontFamily "sans-serif"}}
+       ($ "input"
+          {:style {:border "1px solid red"}
+           :oninput (fn [e]
+                      (on-change (.. e -target -value)))
+           :value (:text @*state)})
+       ($ "div" (text (:text state)))))
 
- (defn render!
-   []
-   (dom/patch (js/document.getElementById "root") example))
+  (defn render!
+    [state]
+    (dom/patch (js/document.getElementById "root")
+               #(example state on-change)))
 
- (add-watch *state :render (fn [_ _ _ _] (render!)))
+  (add-watch *state :render (fn [_ _ _ state] (render! state)))
 
- (render!)
+  (render! @*state)
 
- (swap! *state assoc :text "hi")
+  (swap! *state assoc :text "hi")
 
  )
