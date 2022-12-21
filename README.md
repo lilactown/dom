@@ -7,7 +7,20 @@ It is a thin wrapper around google's extremely stable
 
 ## Install
 
+The library is available via git deps
+
+```clojure
+town.lilac/dom {:git/url "https://github.com/lilactown/dom"
+                :git/sha "8ab889ad9ae071b25e4e001c0ac9dac0c32a0234"}
+```
+
 ## Usage
+
+### API
+
+See `town.lilac.dom` docstrings.
+
+### Example
 
 ```clojure
 (ns my-app.main
