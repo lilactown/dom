@@ -1,4 +1,4 @@
-# dom-expr
+# town.lilac/dom
 
 An extremely simple library for declaratively creating and updating web pages.
 
