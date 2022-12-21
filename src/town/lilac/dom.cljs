@@ -7,6 +7,8 @@
 
 
 (defn open
+  "Open an element for a specific `tag`.
+  Not meant for use directly. See `$` and other DOM macros."
   [tag key attrs]
   (apply
    dom/elementOpen tag key nil
@@ -15,11 +17,15 @@
 
 
 (defn close
+  "Close an element for a specific `tag`.
+  Not meant for use directly. See `$` and other DOM macros."
   [tag]
   (dom/elementClose tag))
 
 
 (defn void
+  "Create an element out of a tag that does not close, e.g. \"input\".
+  Not meant for use directly. See `$` and other DOM macros."
   [tag key attrs]
   (apply
    dom/elementVoid tag key nil
@@ -27,10 +33,16 @@
      (apply concat (js/Object.entries (clj->js attrs))))))
 
 
-(defn text [& args] (dom/text (apply str args)))
+(defn text
+  "Create a DOM text node."
+  [& args]
+  (dom/text (apply str args)))
+
 
 ;; https://github.com/google/incremental-dom/issues/283
-(defn raw-html
+(defn html-blob
+  "Create an HTML blob out of string `content`, rendering it directly on the
+  page when patched."
   [content]
   (let [el (dom/elementOpen "html-blob")]
     (when (not= content (gobj/get el "__innerHTML"))
@@ -39,7 +51,14 @@
     (dom/skip)
     (dom/elementClose "html-blob")))
 
-(def patch dom/patch)
+
+(defn patch
+  "Given a root DOM element `root` and a function `f` that contains DOM
+  expressions, calls `f` with no arguments and updates the inner HTML of the
+  root element with the result."
+  [root f]
+  (dom/patch root f))
+
 
 (comment
   (def *state (atom {:text "bonjour"}))

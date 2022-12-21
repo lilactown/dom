@@ -1,4 +1,14 @@
 (ns town.lilac.dom
+  "Macros for creating DOM expressions. See `$` for usage.
+  Additional macros like `div`, `input`, `button` allow quick & easy creation of
+  specific tags.
+
+  The code emitted by `$` and friends is side effecting. You do not need to keep
+  the value returned by `$` or any of the specific DOM macros.
+  \"incremental-dom\" keeps track of the elements created and diffs the result
+  against the DOM nodes on the page during `patch`.
+
+  Calling `$` and friends outside of a `patch` call is a runtime error."
   (:refer-clojure :exclude [map meta time]))
 
 (def void-tags
@@ -18,6 +28,20 @@
     "wbr"})
 
 (defmacro $
+  "Core macro for creating DOM expressions. Emits code that uses Google's
+  \"incremental-dom\" library to create, diff and patch the DOM nodes on the
+  page.
+
+  `tag` (string) is the HTML tag you want to open. Optionally, a map of
+  attributes may be passed in the second position to configure the resulting DOM
+  node.
+
+  For non-void tags, any other type and/or any additional arguments are emitted
+  between the open and close tag calls. E.g. ($ \"div\" ($ \"input\")) will
+  place the input inside of the div.
+
+  Void tags (i.e. tags that do not close, for instance \"input\") do not emit
+  any of its args."
   [tag & args]
   (let [[attrs children] (if (map? (first args))
                            [(first args) (rest args)]
