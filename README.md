@@ -1,6 +1,7 @@
 # town.lilac/dom
 
-An extremely simple library for declaratively creating and updating web pages.
+An extremely simple library for declaratively creating and updating web pages in
+ClojureScript.
 
 It is a thin wrapper around google's extremely stable
 [incremental-dom](https://github.com/google/incremental-dom) library.
