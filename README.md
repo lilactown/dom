@@ -69,3 +69,46 @@ See `town.lilac.dom` docstrings.
 (comment
   (swap! *state assoc :text "hi"))
 ```
+
+### How it works
+
+> Side effects may include...
+
+[incremental-dom](https://github.com/google/incremental-dom) operates via side-
+effects; when you call `$` or `div` via this library, the library does some
+internal book keeping to track what elements contain others via the order of
+`open` and `close` calls.
+
+```clojure
+($ "div" (text "hello"))
+
+;; emits something akin to
+(open "div")
+(text "hello")
+(close "div")
+```
+
+The `close` call will return the `HTMLElement` node for the div with the HTML
+`Text` node as a child of it.
+
+After the function you passed to `patch` returns, it will take the tree of
+elements constructed, diff the resulting tree with what is present within the
+root element, and update the root with nodes that have changed.
+
+#### What this means
+
+*You do not need to return an element for it to be added to the result*
+
+```clojure
+(defn app
+  []
+  (d/div
+   (d/text "hello ")
+   (let [text (d/text "side effects")]
+     ;; no return value
+     nil)
+   (d/text "!")))
+
+(d/patch root app)
+;; results in <div>"hello " "side effects" "!"</div> added to the page
+```
