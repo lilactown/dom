@@ -36,7 +36,10 @@
                          :content-editable true
                          :spell-check false
                          :draggable true})))
-      "kitchen sink"))
+      "kitchen sink")
+  (is (= "<div style=\"color:red\"></div>"
+         (d/patch #(d/$ "div"
+                        {& {:style {:color "red"}}})))))
 
 (deftest html-escape
   (is (= "<div>&lt;button class=&quot;foo&quot;&gt;hi&lt;/button&gt;</div>"
