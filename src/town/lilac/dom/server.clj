@@ -4,9 +4,10 @@
 
 (def ^:dynamic *sb* nil)
 
-(defn patch
+(defn render
   [f]
-  (str (binding [*sb* (or *sb* (StringBuilder.))]
+  (str
+   (binding [*sb* (or *sb* (StringBuilder.))]
      (f))))
 
 (def void-tags
@@ -131,9 +132,9 @@
   (.append ^StringBuilder *sb* content))
 
 (comment
-  (patch #($ "div" (text "hi")))
+  (render #($ "div" (text "hi")))
   ;; => "<div>hi</div>"
 
-  (patch #(div (text "hi")))
+  (render #(div (text "hi")))
   ;; => "<div>hi</div>"
   )
