@@ -114,7 +114,6 @@
                           town.lilac.dom/table          clj-kondo.town.lilac.dom/dom
                           town.lilac.dom/tbody          clj-kondo.town.lilac.dom/dom
                           town.lilac.dom/td             clj-kondo.town.lilac.dom/dom
-                          town.lilac.dom/text           clj-kondo.town.lilac.dom/dom
                           town.lilac.dom/textarea       clj-kondo.town.lilac.dom/dom
                           town.lilac.dom/tfoot          clj-kondo.town.lilac.dom/dom
                           town.lilac.dom/th             clj-kondo.town.lilac.dom/dom
