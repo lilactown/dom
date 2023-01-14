@@ -4,6 +4,11 @@
 
 (def ^:dynamic *sb* nil)
 
+(defn patch
+  [f]
+  (str (binding [*sb* (or *sb* (StringBuilder.))]
+     (f))))
+
 (def void-tags
   #{"area"
     "base"
@@ -95,19 +100,24 @@
 (gen-tags)
 
 
+(defn escape-html
+  [^String text]
+  (.. text
+    (replace "&"  "&amp;")
+    (replace "<"  "&lt;")
+    (replace ">"  "&gt;")
+    (replace "\"" "&quot;")
+    (replace "'" "&apos;")))
+
 (defn text
   [s]
-  (.append ^StringBuilder *sb* s)
-  s)
+  (doto (escape-html s)
+    (->> (.append ^StringBuilder *sb*))))
 
-(defn patch
-  [f]
-  (str (binding [*sb* (or *sb* (StringBuilder.))]
-     (f))))
+(comment
+  (patch #($ "div" (text "hi")))
+  ;; => "<div>hi</div>"
 
-
-(patch #($ "div" (text "hi")))
-;; => "<div>hi</div>"
-
-
-(patch #(div (text "hi")))
+  (patch #(div (text "hi")))
+  ;; => "<div>hi</div>"
+  )

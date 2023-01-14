@@ -99,20 +99,20 @@
   (attrs->str {:style {:color "red"}})
 
   (attrs->str {:style {:color "red"}
-                 :id "foo"
-                 :class ["foo" "bar"]
-                 :for "baz"
-                 :accept-charset "utf8"
-                 :http-equiv "content-security-policy"
-                 :default-value 7
-                 :default-checked true
-                 :multiple true
-                 :muted true
-                 :selected true
-                 :children '("foo" "bar" "baz")
-                 :inner-html "<span></span>"
-                 :suppress-content-editable-warning true
-                 :suppress-hydration-warning true
-                 :content-editable true
-                 :spell-check false
-                 :draggable true}))
+               :id "foo"
+               :class ["foo" "bar"]
+               :for "baz"
+               :accept-charset "utf8"
+               :http-equiv "content-security-policy"
+               :default-value 7
+               :default-checked true
+               :multiple true
+               :muted true
+               :selected true
+               :children '("foo" "bar" "baz")
+               :inner-html "<span></span>"
+               :suppress-content-editable-warning true
+               :suppress-hydration-warning true
+               :content-editable true
+               :spell-check false
+               :draggable true}))
