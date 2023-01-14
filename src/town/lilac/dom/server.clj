@@ -114,6 +114,16 @@
   (doto (escape-html s)
     (->> (.append ^StringBuilder *sb*))))
 
+(defn html5
+  []
+  (.append ^StringBuilder *sb* "<!DOCTYPE html>"))
+
+(defn html-blob
+  "Create an HTML blob out of string `content`, rendering it directly on the
+  page when patched."
+  [content]
+  (.append ^StringBuilder *sb* content))
+
 (comment
   (patch #($ "div" (text "hi")))
   ;; => "<div>hi</div>"
