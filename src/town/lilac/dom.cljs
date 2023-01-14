@@ -73,7 +73,9 @@
           {:style {:border "1px solid red"}
            :oninput (fn [e]
                       (on-change (.. e -target -value)))
-           :value (:text @*state)})
+           :value (:text @*state)
+           :& (when (= "hello" (:text state))
+                {:style {:border "1px solid blue"}})})
        ($ "div" (text (:text state)))))
 
   (defn render!

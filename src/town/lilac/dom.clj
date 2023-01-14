@@ -48,7 +48,13 @@
                            [nil args])
         [key attrs] (if-let [key (:key attrs)]
                       [key (dissoc attrs :key)]
-                      [nil attrs])]
+                      [nil attrs])
+        attrs (cond
+                (contains? attrs :&) `(merge ~(dissoc attrs :&)
+                                             ~(:& attrs))
+                (contains? attrs '&) `(merge ~(dissoc attrs '&)
+                                             ~('& attrs))
+                :else attrs)]
     (if (contains? void-tags tag)
       `(void ~tag ~key ~attrs)
       `(do
