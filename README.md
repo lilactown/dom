@@ -97,6 +97,24 @@ After the function you passed to `patch` returns, it will take the tree of
 elements constructed, diff the resulting tree with what is present within the
 root element, and update the root with nodes that have changed.
 
+#### What this means
+
+*You do not need to return an element for it to be added to the result*
+
+```clojure
+(defn app
+  []
+  (d/div
+   (d/text "hello ")
+   (let [text (d/text "side effects")]
+     ;; no return value
+     nil)
+   (d/text "!")))
+
+(d/patch root app)
+;; results in <div>"hello " "side effects" "!"</div> added to the page
+```
+
 ### Dynamic attributes
 
 The `$` macro needs to determine whether an argument passed to it is a child in
@@ -150,22 +168,4 @@ Here is the **correct code**:
   bar
   baz
   (close "div"))
-```
-
-#### What this means
-
-*You do not need to return an element for it to be added to the result*
-
-```clojure
-(defn app
-  []
-  (d/div
-   (d/text "hello ")
-   (let [text (d/text "side effects")]
-     ;; no return value
-     nil)
-   (d/text "!")))
-
-(d/patch root app)
-;; results in <div>"hello " "side effects" "!"</div> added to the page
 ```
