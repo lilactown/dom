@@ -89,7 +89,6 @@
    ""
    (dissoc props
            :children
-           :dangerously-set-inner-HTML
            :inner-html
            :suppress-content-editable-warning
            :suppress-hydration-warning
@@ -111,7 +110,6 @@
                  :muted true
                  :selected true
                  :children '("foo" "bar" "baz")
-                 :dangerousely-set-inner-html "<div></div>"
                  :inner-html "<span></span>"
                  :suppress-content-editable-warning true
                  :suppress-hydration-warning true
