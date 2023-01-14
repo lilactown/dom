@@ -2,3 +2,4 @@
 /.shadow-cljs/
 /node_modules/
 /package-lock.json
+.clj-kondo/.cache/
