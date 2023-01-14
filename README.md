@@ -75,9 +75,9 @@ See `town.lilac.dom` docstrings.
 > Side effects may include...
 
 [incremental-dom](https://github.com/google/incremental-dom) operates via side-
-effects; when you call `$` or `div` via this library, the library does some
-internal book keeping to track what elements contain others via the order of
-`open` and `close` calls.
+effects; when you call `$` or a specific DOM macro like `div` via this library,
+the library does some internal book keeping to track what elements contain others
+via the order of `open` and `close` calls.
 
 ```clojure
 ($ "div" (text "hello"))
