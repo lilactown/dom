@@ -12,7 +12,7 @@ The library is available via git deps
 
 ```clojure
 town.lilac/dom {:git/url "https://github.com/lilactown/dom"
-                :git/sha "8ab889ad9ae071b25e4e001c0ac9dac0c32a0234"}
+                :git/sha "172f364f572dcfd0e8849738a52e8cad95e3e75b"}
 ```
 
 ## Usage
@@ -54,7 +54,9 @@ See `town.lilac.dom` docstrings.
     {:style {:border "1px solid red"}
      :oninput (fn [e]
                 (on-change (.. e -target -value)))
-     :value text})
+     :value text
+     & (when (= "hello" text)
+         {:style {:border "1px solid blue"}})})
    (d/div (d/text text))))
 
 (defn render!
@@ -80,10 +82,10 @@ the library does some internal book keeping to track what elements contain other
 via the order of `open` and `close` calls.
 
 ```clojure
-($ "div" (text "hello"))
+($ "div" {:style {:color "red"}} (text "hello"))
 
 ;; emits something akin to
-(open "div")
+(open "div" {:color "red"})
 (text "hello")
 (close "div")
 ```
@@ -94,6 +96,61 @@ The `close` call will return the `HTMLElement` node for the div with the HTML
 After the function you passed to `patch` returns, it will take the tree of
 elements constructed, diff the resulting tree with what is present within the
 root element, and update the root with nodes that have changed.
+
+### Dynamic attributes
+
+The `$` macro needs to determine whether an argument passed to it is a child in
+order to place the `open` and `close` calls correctly. The heuristic it uses is:
+anything that isn't a map literal in the first position is a child. So:
+
+```clojure
+($ "div" (foo) [bar] baz)
+
+;; emits
+(open "div")
+(foo)
+[bar]
+baz
+(close "div")
+```
+
+This complicates things when you want to pass in a dynamic map of attributes
+
+```clojure
+(let [attrs {:style {:color "red"}}]
+  ($ "div" (merge {:id "asdf"} attrs) foo bar baz))
+
+;; OOPS! emits
+(let [attrs {:style {:color "red"}}]
+  (open "div")
+  (merge {:id "asdf"} attrs)
+  foo
+  bar
+  baz
+  (close "div"))
+```
+
+Ideally, we would detect that `attrs` is in fact a map and pass it to the `open`
+call. However, this isn't possible to do at compile time in all cases.
+
+Instead, the `$` and other DOM element macros accept a special attribute, `&` or
+`:&` which will merge any static attributes you pass in with ones that are
+passed in dynamically.
+
+Here is the **correct code**:
+
+```clojure
+(let [attrs {:style {:color "red"}}]
+  ($ "div" {:id "asdf" & attrs} foo bar baz))
+
+;; emits
+(let [attrs {:style {:color "red"}}]
+  (open "div" (merge {:id "asdf"} attrs))
+  foo
+  bar
+  baz
+  (close "div"))
+```
 
 #### What this means
 
