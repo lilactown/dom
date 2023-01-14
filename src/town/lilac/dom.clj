@@ -70,7 +70,7 @@
  main map mark menu menuitem meta meter nav noscript object ol optgroup output p param
  picture pre progress q rp rt ruby s samp script section small source span strong style
  sub summary sup table tbody td tfoot th thead time title tr track u ul var video wbr
- circle clipPath ellipse g line mask path pattern polyline rect svg text defs
+ circle clipPath ellipse g line mask path pattern polyline rect svg defs
  linearGradient polygon radialGradient stop tspan)
 
 (def tags
