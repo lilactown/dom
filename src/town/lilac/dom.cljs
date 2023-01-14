@@ -10,10 +10,10 @@
   "Open an element for a specific `tag`.
   Not meant for use directly. See `$` and other DOM macros."
   [tag key attrs]
-  (apply
-   dom/elementOpen tag key nil
-   (when attrs
-     (apply concat (js/Object.entries (clj->js attrs))))))
+  (dom/elementOpenStart tag key nil)
+  (doseq [[k v] attrs]
+    (dom/attr (name k) (clj->js v)))
+  (dom/elementOpenEnd))
 
 
 (defn close
@@ -27,10 +27,8 @@
   "Create an element out of a tag that does not close, e.g. \"input\".
   Not meant for use directly. See `$` and other DOM macros."
   [tag key attrs]
-  (apply
-   dom/elementVoid tag key nil
-   (when attrs
-     (apply concat (js/Object.entries (clj->js attrs))))))
+  (open tag key attrs)
+  (close tag))
 
 
 (defn text
