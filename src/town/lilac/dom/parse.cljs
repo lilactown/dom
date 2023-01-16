@@ -40,15 +40,15 @@
     (let [hd (aget data 0)
           more (.slice data 1)]
       (case hd
-        "text" (apply dom/text more)
+        "text" (.apply dom/text nil more)
         "$" (let [tag (aget more 0)
-                  [attrs children] (if (object? (aget more 1))
-                                     [(aget more 1) (.slice more 2)]
-                                     [nil (.slice more 1)])]
+                  attrs? (object? (aget more 1))
+                  attrs (when attrs? (aget more 1))
+                  children (if attrs? (.slice more 2) (.slice more 1))]
               (dom/elementOpenStart tag (gobj/get attrs "key") nil)
               ;; TODO clone attrs and dissoc?
               (gobj/forEach attrs (fn [v k _o]
-                                    (when (not= "key" k)
+                                    (when (not (identical? "key" k))
                                       (dom/attr k v))))
               (dom/elementOpenEnd tag)
               (when children
