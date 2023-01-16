@@ -2,12 +2,26 @@
   (:refer-clojure :exclude [map meta time])
   (:require [town.lilac.dom.server.attrs :as attrs]))
 
-(def ^:dynamic *sb* nil)
+(def ^:dynamic *stream* nil)
 
-(defn render
+(defprotocol IStream
+  (-put! [s parts]))
+
+(extend-type StringBuilder
+  IStream
+  (-put! [sb parts]
+    (doseq [p parts]
+      (.append sb p))
+    sb))
+
+(defn put!
+  [& parts]
+  (-put! *stream* parts))
+
+(defn render-string
   [f]
   (str
-   (binding [*sb* (or *sb* (StringBuilder.))]
+   (binding [*stream* (or *stream* (StringBuilder.))]
      (f))))
 
 (def void-tags
@@ -28,29 +42,15 @@
 
 (defn void
   [tag _key attrs]
-  (let [^StringBuilder sb *sb*]
-    (.append sb "<")
-    (.append sb tag)
-    (.append sb (attrs/attrs->str attrs))
-    (.append sb ">")
-    sb))
+  (put! "<" tag (attrs/attrs->str attrs) ">"))
 
 (defn open
   [tag _key attrs]
-  (let [^StringBuilder sb *sb*]
-    (.append sb "<")
-    (.append sb tag)
-    (.append sb (attrs/attrs->str attrs))
-    (.append sb ">")
-    sb))
+  (put! "<" tag (attrs/attrs->str attrs) ">"))
 
 (defn close
   [tag]
-  (let [^StringBuilder sb *sb*]
-    (.append sb "</")
-    (.append sb tag)
-    (.append sb ">")
-    sb))
+  (put! "</" tag ">"))
 
 (defmacro $
   [tag & args]
@@ -118,23 +118,22 @@
 
 (defn text
   [s]
-  (doto (escape-html s)
-    (->> (.append ^StringBuilder *sb*))))
+  (put! (escape-html s)))
 
 (defn html5
   []
-  (.append ^StringBuilder *sb* "<!DOCTYPE html>"))
+  (put! "<!DOCTYPE html>"))
 
 (defn html-blob
   "Create an HTML blob out of string `content`, rendering it directly on the
   page when patched."
   [content]
-  (.append ^StringBuilder *sb* content))
+  (put! content))
 
 (comment
-  (render #($ "div" (text "hi")))
+  (render-string #($ "div" (text "hi")))
   ;; => "<div>hi</div>"
 
-  (render #(div (text "hi")))
+  (render-string #(div (text "hi")))
   ;; => "<div>hi</div>"
   )
