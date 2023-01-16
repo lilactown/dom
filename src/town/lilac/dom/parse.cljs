@@ -1,9 +1,16 @@
 (ns town.lilac.dom.parse
+  "Runtime parsing of data into incremental-dom patches.
+  Supports both EDN and JSON formats. "
   (:require
    ["incremental-dom" :as dom]
    [goog.object :as gobj]))
 
 (defn edn
+  "Accepts a tree of EDN data, parses and executes each element as
+  incremental-dom commands.
+
+  Example:
+  ($ \"div\" {:style {:color \"red\"}} (text \"hi\"))"
   [data]
   (when (seq data)
     (let [[hd & more] data]
@@ -22,8 +29,12 @@
             (dom/elementClose tag))
         nil))))
 
-
 (defn json
+  "Accepts a tree of JSON data, parses and executes each element as
+  incremental-dom commands.
+
+  Example:
+  #js [\"$\" \"div\" #js {:style #js {:color \"red\"}} #js [\"text\" \"hi\"]]"
   [data]
   (when (array? data)
     (let [hd (aget data 0)

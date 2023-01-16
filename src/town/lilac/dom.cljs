@@ -1,4 +1,42 @@
 (ns town.lilac.dom
+  "An extremely simple library for declaratively creating and updating web pages
+  in ClojureScript.
+
+  It is a thin wrapper around google's extremely stable incremental-dom library.
+
+  The library exposes a `$` macro that allows one to create elements that are
+  then diffed against the existing nodes on the page and patched accordingly. No
+  virtual DOM is kept in memory.
+
+  There are helpful macros that wrap `$` for specific elements like `div`,
+  `button`, `input`, etc. With these, the library provides a simple DSL for
+  constructing elements.
+
+  These macro calls must be run via a function passed to `patch`.
+
+  ## How it works
+
+  incremental-dom operates via side- effects; when you call $ or a specific DOM
+  macro like div via this library, the library does some internal book keeping
+  to track what elements contain others via the order of open and close calls.
+
+  After the function you passed to patch returns, it will take the tree of
+  elements constructed, diff the resulting tree with what is present within the
+  root element, and update the root with nodes that have changed.
+
+  What this means: you do not need to return an element for it to be added to
+  the result.
+
+  ## Dynamic attributes
+
+  The $ macro needs to determine whether an argument passed to it is a child in
+  order to place the open and close calls correctly. The heuristic it uses is:
+  anything that isn't a map literal in the first position is a child. This
+  complicates things when you want to pass in a dynamic map of attributes.
+
+  Instead, the $ and other DOM element macros accept a special attribute, & or
+  :& which will merge any static attributes you pass in with ones that are
+  passed in dynamically."
   (:require
    ["incremental-dom" :as dom]
    [goog.object :as gobj])
