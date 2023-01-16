@@ -1,6 +1,8 @@
 (ns town.lilac.dom.server
   (:refer-clojure :exclude [map meta time])
-  (:require [town.lilac.dom.server.attrs :as attrs]))
+  (:require
+   [manifold.stream :as s]
+   [town.lilac.dom.server.attrs :as attrs]))
 
 (def ^:dynamic *stream* nil)
 
@@ -14,6 +16,11 @@
       (.append sb p))
     sb))
 
+(defrecord ManifoldStream [sink]
+  IStream
+  (-put! [_ parts]
+    (s/put! sink (apply str parts))))
+
 (defn put!
   [& parts]
   (-put! *stream* parts))
@@ -23,6 +30,12 @@
   (str
    (binding [*stream* (or *stream* (StringBuilder.))]
      (f))))
+
+(defn stream
+  [sink f]
+  (binding [*stream* (->ManifoldStream sink)]
+    (f))
+  )
 
 (def void-tags
   #{"area"
@@ -136,4 +149,9 @@
 
   (render-string #(div (text "hi")))
   ;; => "<div>hi</div>"
+
+  (let [s (s/stream)]
+    (stream s #($ "div" (text "hi")))
+    (s/close! s)
+    (s/stream->seq s))
   )
