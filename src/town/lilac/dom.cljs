@@ -37,28 +37,35 @@
   Instead, the $ and other DOM element macros accept a special attribute, & or
   :& which will merge any static attributes you pass in with ones that are
   passed in dynamically."
+  (:refer-clojure :exclude [use])
   (:require
    ["incremental-dom" :as dom]
    [goog.object :as gobj])
   (:require-macros
-   [town.lilac.dom :refer [$]]))
+   [town.lilac.dom :refer [$ async]]))
+
+(def ^:dynamic *buffer* nil)
 
 
 (defn open
   "Open an element for a specific `tag`.
   Not meant for use directly. See `$` and other DOM macros."
   [tag key attrs]
-  (dom/elementOpenStart tag key nil)
-  (doseq [[k v] attrs]
-    (dom/attr (name k) (clj->js v)))
-  (dom/elementOpenEnd))
+  (if (some? *buffer*)
+    (.push *buffer* #js ["open" tag key attrs])
+    (do (dom/elementOpenStart tag key nil)
+        (doseq [[k v] attrs]
+          (dom/attr (name k) (clj->js v)))
+        (dom/elementOpenEnd))))
 
 
 (defn close
   "Close an element for a specific `tag`.
   Not meant for use directly. See `$` and other DOM macros."
   [tag]
-  (dom/elementClose tag))
+  (if *buffer*
+    (.push *buffer* #js ["close" tag])
+    (dom/elementClose tag)))
 
 
 (defn void
@@ -72,7 +79,9 @@
 (defn text
   "Create a DOM text node."
   [& args]
-  (dom/text (apply str args)))
+  (if *buffer*
+    (.push *buffer* #js ["text" args])
+    (dom/text (apply str args))))
 
 
 ;; https://github.com/google/incremental-dom/issues/283
@@ -94,6 +103,19 @@
   root element with the result."
   [root f]
   (dom/patch root f))
+
+(def get-current-element dom/currentElement)
+
+(defn patch-outer
+  [root f]
+  (dom/patchOuter root f))
+
+
+(defn use
+  [v]
+  (if (= js/Promise (type v))
+    (throw v)
+    v))
 
 
 (comment
@@ -126,5 +148,26 @@
   (render! @*state)
 
   (swap! *state assoc :text "hi")
+
+  (def cache nil)
+
+  (defn fetcher
+    []
+    (if (nil? cache)
+      (-> (js/Promise. (fn [res]
+                         (js/setTimeout #(res {:foo "bar"})
+                                        2000)))
+          (.then (fn [v] (set! cache v))))
+      cache))
+
+  (patch
+   (js/document.getElementById "root")
+   (fn []
+     (set! cache nil)
+     ($ "div" (text "hi"))
+     (async
+      ($ "div" {:style {:border "1px solid blue"}}
+         ($ "textarea" (text (pr-str (use (fetcher))))))
+      (fallback ($ "div" (text "loading..."))))))
 
  )

@@ -95,3 +95,37 @@
          (gen-tag tag))))
 
 (gen-tags)
+
+
+;; async runtime
+
+(defmacro async
+  [& body]
+  (let [fallback (last body)
+        body (drop-last body)
+        fn-sym (gensym "async-fn")]
+    (when (not= 'fallback (first fallback))
+      (throw
+       (ex-info "async expr requires (fallback ,,,) as last expression in body"
+                {:body body})))
+    `((fn ~fn-sym []
+        (prn ~fn-sym)
+        (let [buffer# (cljs.core/array)
+              parent# (get-current-element)]
+          (try
+            (binding [*buffer* buffer#]
+              ~@body)
+            (doseq [data# buffer#]
+              (case (first data#)
+                "open" (apply open (.slice data# 1))
+                "close" (close (second data#))
+                "text" (apply text (second data#))))
+            (catch js/Promise e#
+              (let [fallback-id# (gensym "fallback")
+                    ;; TODO assert that fallback is a single element
+                    el# ~@(rest fallback)]
+                (.then e# (fn [result#]
+                            (patch el# ~fn-sym))))
+
+              ))
+          )))))
