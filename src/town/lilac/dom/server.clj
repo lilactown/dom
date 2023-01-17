@@ -4,36 +4,37 @@
    [manifold.stream :as s]
    [town.lilac.dom.server.attrs :as attrs]))
 
-(def ^:dynamic *stream* nil)
+(def ^:dynamic *buffer nil)
 
-(defprotocol IStream
-  (-put! [s parts]))
+(defprotocol IBuffer
+  (-put! [s parts])
+  (-await! []))
 
 (extend-type StringBuilder
-  IStream
+  IBuffer
   (-put! [sb parts]
     (doseq [p parts]
       (.append sb p))
     sb))
 
 (defrecord ManifoldStream [sink]
-  IStream
+  IBuffer
   (-put! [_ parts]
     (s/put! sink (apply str parts))))
 
 (defn put!
   [& parts]
-  (-put! *stream* parts))
+  (-put! *buffer parts))
 
 (defn render-string
   [f]
   (str
-   (binding [*stream* (or *stream* (StringBuilder.))]
+   (binding [*buffer (or *buffer (StringBuilder.))]
      (f))))
 
-(defn stream
+(defn render-stream
   [sink f]
-  (binding [*stream* (->ManifoldStream sink)]
+  (binding [*buffer (->ManifoldStream sink)]
     (f))
   )
 
@@ -151,7 +152,7 @@
   ;; => "<div>hi</div>"
 
   (let [s (s/stream)]
-    (stream s #($ "div" (text "hi")))
+    (render-stream s #($ "div" (text "hi")))
     (s/close! s)
     (s/stream->seq s))
   )
