@@ -96,6 +96,24 @@
 
 (gen-tags)
 
+(defmacro buffer
+  [& body]
+  `(let [buffer# (cljs.core/array)]
+     (binding [*buffer* buffer#]
+       ~@body)
+     (doseq [data# buffer#]
+       (case (first data#)
+         "open" (apply open (.slice data# 1))
+         "close" (close (second data#))
+         "text" (apply text (second data#))))))
+
+(defmacro fallback
+  [& body]
+  (let [catch (last body)
+        body (drop-last body)]
+    `(try
+      (buffer ~@body)
+      ~catch)))
 
 ;; async runtime
 
@@ -113,13 +131,7 @@
         (let [buffer# (cljs.core/array)
               parent# (get-current-element)]
           (try
-            (binding [*buffer* buffer#]
-              ~@body)
-            (doseq [data# buffer#]
-              (case (first data#)
-                "open" (apply open (.slice data# 1))
-                "close" (close (second data#))
-                "text" (apply text (second data#))))
+            (buffer ~@body)
             (catch js/Promise e#
               (let [fallback-id# (gensym "fallback")
                     ;; TODO assert that fallback is a single element
