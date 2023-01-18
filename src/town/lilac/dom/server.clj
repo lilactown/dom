@@ -4,11 +4,11 @@
    [manifold.stream :as s]
    [town.lilac.dom.server.attrs :as attrs]))
 
-(def ^:dynamic *buffer nil)
+(def ^:dynamic *buffer* nil)
 
 (defprotocol IBuffer
-  (-put! [s parts])
-  (-await! []))
+  (-put! [b parts])
+  (-await! [b]))
 
 (extend-type StringBuilder
   IBuffer
@@ -24,17 +24,17 @@
 
 (defn put!
   [& parts]
-  (-put! *buffer parts))
+  (-put! *buffer* parts))
 
 (defn render-string
   [f]
   (str
-   (binding [*buffer (or *buffer (StringBuilder.))]
+   (binding [*buffer* (or *buffer* (StringBuilder.))]
      (f))))
 
 (defn render-stream
   [sink f]
-  (binding [*buffer (->ManifoldStream sink)]
+  (binding [*buffer* (->ManifoldStream sink)]
     (f))
   )
 
