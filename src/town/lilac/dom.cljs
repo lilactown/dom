@@ -42,7 +42,7 @@
    ["incremental-dom" :as dom]
    [goog.object :as gobj])
   (:require-macros
-   [town.lilac.dom :refer [$ async fallback]]))
+   [town.lilac.dom :as macro :refer [$]]))
 
 (def ^:dynamic *buffer* nil)
 
@@ -153,7 +153,7 @@
    (js/document.getElementById "root")
    (fn []
      ($ "div" (text "hi"))
-     (fallback
+     (macro/try
       ($ "div" {:style {:border "1px solid blue"}}
          (throw (ex-info "error" {}))
          ($ "textarea" (text "hi")))
@@ -176,7 +176,7 @@
    (fn []
      (set! cache nil)
      ($ "div" (text "hi"))
-     (async
+     (macro/async
       ($ "div" {:style {:border "1px solid blue"}}
          ($ "textarea" (text (pr-str (use (fetcher))))))
       (fallback ($ "div" (text "loading..."))))))

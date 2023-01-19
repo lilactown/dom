@@ -107,7 +107,7 @@
          "close" (close (second data#))
          "text" (apply text (second data#))))))
 
-(defmacro fallback
+(defmacro try
   [& body]
   (let [catch (last body)
         body (drop-last body)]
@@ -137,7 +137,4 @@
                     ;; TODO assert that fallback is a single element
                     el# ~@(rest fallback)]
                 (.then e# (fn [result#]
-                            (patch el# ~fn-sym))))
-
-              ))
-          )))))
+                            (patch el# ~fn-sym)))))))))))
