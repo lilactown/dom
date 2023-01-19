@@ -37,7 +37,7 @@
   Instead, the $ and other DOM element macros accept a special attribute, & or
   :& which will merge any static attributes you pass in with ones that are
   passed in dynamically."
-  (:refer-clojure :exclude [use])
+  (:refer-clojure :exclude [use flush])
   (:require
    ["incremental-dom" :as dom]
    [goog.object :as gobj])
@@ -47,16 +47,21 @@
 (def ^:dynamic *buffer* nil)
 
 
+(defn- open*
+  [tag key attrs]
+  (dom/elementOpenStart tag key nil)
+  (doseq [[k v] attrs]
+    (dom/attr (name k) (clj->js v)))
+  (dom/elementOpenEnd))
+
+
 (defn open
   "Open an element for a specific `tag`.
   Not meant for use directly. See `$` and other DOM macros."
   [tag key attrs]
   (if (some? *buffer*)
     (.push *buffer* #js ["open" tag key attrs])
-    (do (dom/elementOpenStart tag key nil)
-        (doseq [[k v] attrs]
-          (dom/attr (name k) (clj->js v)))
-        (dom/elementOpenEnd))))
+    (open* tag key attrs)))
 
 
 (defn close
@@ -82,6 +87,16 @@
   (if *buffer*
     (.push *buffer* #js ["text" args])
     (dom/text (apply str args))))
+
+
+(defn flush!
+  []
+  (doseq [data *buffer*]
+    (prn data)
+    (case (first data)
+      "open" (apply open* (.slice data 1))
+      "close" (dom/elementClose (second data))
+      "text" (dom/text (apply str (second data))))))
 
 
 ;; https://github.com/google/incremental-dom/issues/283
@@ -159,6 +174,7 @@
          ($ "textarea" (text "hi")))
       (catch js/Object _
         ($ "div" (text "Error!"))))))
+
 
   (def cache nil)
 

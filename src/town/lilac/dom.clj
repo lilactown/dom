@@ -98,14 +98,9 @@
 
 (defmacro buffer
   [& body]
-  `(let [buffer# (cljs.core/array)]
-     (binding [*buffer* buffer#]
-       ~@body)
-     (doseq [data# buffer#]
-       (case (first data#)
-         "open" (apply open (.slice data# 1))
-         "close" (close (second data#))
-         "text" (apply text (second data#))))))
+  `(binding [*buffer* (cljs.core/array)]
+     ~@body
+     (flush!)))
 
 (defmacro try
   [& body]
