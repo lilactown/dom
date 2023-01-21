@@ -33,7 +33,14 @@
   [{:keys [filter]}]
   (dom/section
    {:class "main"}
-   (dom/input {:id "toggle-all" :class "toggle-all" :type "checkbox"})
+   (dom/input {:id "toggle-all"
+               :class "toggle-all"
+               :type "checkbox"
+               :name "toggle-all"
+               :hx-post "partial/toggle-all"
+               :hx-target ".todoapp"
+               :hx-swap "outerHTML"
+               :checked (every? #(:completed %) (:todos @db))})
    (dom/label {:for "toggle-all"} (dom/text "Mark all as complete"))
    (dom/ul
     {:class "todo-list"}
@@ -55,6 +62,7 @@
                     :hx-swap "outerHTML"})
         (dom/label
          {:hx-get (str "partial/todo/" (:id todo) "/edit")
+          :hx-trigger "dblclick"
           :hx-target (str "#" (:id todo))
           :hx-swap "outerHTML"}
          (dom/text (:label todo)))
@@ -269,6 +277,25 @@
      :headers {"content-type" "text/html"}
      :body html}))
 
+(defn partial-toggle-all-handler
+  [req]
+  (let [{:strs [toggle-all]} (:params req)
+        html (s/stream)]
+    (swap! db update :todos
+           (fn [todos]
+             (->> todos
+                  (map #(assoc % :completed (case toggle-all
+                                              "on" true
+                                              false)))
+                  (vec))))
+    (d/future
+      (dom/render-stream
+       html #(app {:filter (keyword
+                            (get-in req [:params "filter"]))}))
+      (s/close! html))
+    {:status 200
+     :headers {"content-type" "text/html"}
+     :body html}))
 
 (def router
   (ring/router
@@ -280,7 +307,8 @@
       ["/todo/:id" {:delete partial-delete-todo-handler
                     :put partial-update-todo-handler}]
       ["/todo/:id/edit" {:get partial-edit-todo}]
-      ["/clear" {:post partial-clear-handler}]]]
+      ["/clear" {:post partial-clear-handler}]
+      ["/toggle-all" {:post partial-toggle-all-handler}]]]
     ["/assets/*" (ring/create-resource-handler)]]
    {;;:reitit.middleware/transform dev/print-request-diffs ;; pretty diffs
     ;;:validate spec/validate ;; enable spec validation for route data
