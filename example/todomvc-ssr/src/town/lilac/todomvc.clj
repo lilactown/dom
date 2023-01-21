@@ -89,7 +89,10 @@
      {:class "footer"}
      (dom/span
       {:class "todo-count"}
-      (dom/strong (dom/text (str (count (:todos @db)) " item(s) left"))))
+      (dom/strong
+       (dom/text
+        (str (count (clojure.core/filter #(not (:completed %)) (:todos @db)))
+             " item(s) left"))))
      (dom/ul
       {:class "filters"}
       (dom/li (dom/a
