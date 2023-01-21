@@ -113,7 +113,12 @@
                 :hx-target ".todoapp"
                 :hx-swap "outerHTML"}
                (dom/text "Complete"))))
-     (dom/button {:class "clear-completed"} (dom/text "Clear completed")))))
+     (dom/button
+      {:class "clear-completed"
+       :hx-post "partial/clear"
+       :hx-target ".todoapp"
+       :hx-swap "outerHTML"}
+      (dom/text "Clear completed")))))
 
 (defn page
   [{:keys [filter]}]
@@ -245,6 +250,23 @@
      :headers {"content-type" "text/html"}
      :body html}))
 
+(defn partial-clear-handler
+  [req]
+  (let [html (s/stream)]
+    (swap! db update :todos (fn [todos]
+                              (->> todos
+                                   (filter #(not (:completed %)))
+                                   (vec))))
+    (d/future
+      (dom/render-stream
+       html #(app {:filter (keyword
+                            (get-in req [:params "filter"]))}))
+      (s/close! html))
+    {:status 200
+     :headers {"content-type" "text/html"}
+     :body html}))
+
+
 (def router
   (ring/router
    [["/" {:get page-handler}]
@@ -254,7 +276,8 @@
                 :post partial-new-todo-handler}]
       ["/todo/:id" {:delete partial-delete-todo-handler
                     :put partial-update-todo-handler}]
-      ["/todo/:id/edit" {:get partial-edit-todo}]]]
+      ["/todo/:id/edit" {:get partial-edit-todo}]
+      ["/clear" {:post partial-clear-handler}]]]
     ["/assets/*" (ring/create-resource-handler)]]
    {;;:reitit.middleware/transform dev/print-request-diffs ;; pretty diffs
     ;;:validate spec/validate ;; enable spec validation for route data
