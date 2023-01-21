@@ -85,7 +85,10 @@
                               (some? v) (str attrs " " (name k) "=\"" v "\"")
                               :else attrs)
 
-       (str attrs " " (name k) "=\"" v "\"")))
+       (if (string/includes? v "\"")
+         ;; use single quotes if value contains quotes
+         (str attrs " " (name k) "='" v "'")
+         (str attrs " " (name k) "=\"" v "\""))))
    ""
    (dissoc props
            :children
