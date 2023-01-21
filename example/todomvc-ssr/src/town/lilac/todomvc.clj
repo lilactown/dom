@@ -14,13 +14,6 @@
    [reitit.ring.middleware.parameters :as parameters]
    [town.lilac.dom.server :as dom]))
 
-(declare server)
-
-(when-not (instance? clojure.lang.Var$Unbound server)
-  (prn "closing")
-  (.close server)
-  (netty/wait-for-close server))
-
 (def db (atom {:todos [{:label "Write code"
                         :id (gensym "todo")
                         :completed true}
@@ -165,54 +158,49 @@
     {:status 303
      :headers {"Location" "/"}}))
 
+(defn render-app
+  [opts]
+  (let [html (s/stream)]
+    (d/future
+      (dom/render-stream html #(app opts))
+      (s/close! html))
+    html))
+
 (defn partial-todos-handler
   [req]
-  (let [html (s/stream)
-        ;; hx-vals adds as params to the end of the URL
-        filter (first (get-in req [:params "filter"] "all"))]
-    (d/future
-      (dom/render-stream html #(app {:filter (keyword filter)}))
-      (s/close! html))
-    {:status 200
-     :headers {"content-type" "text/html"}
-     :body html}))
+  {:status 200
+   :headers {"content-type" "text/html"}
+   :body (render-app {:filter (-> req
+                                  (get-in [:params "filter"] "all")
+                                  (first)
+                                  (keyword))})})
 
 (defn partial-new-todo-handler
   [req]
-  (let [{:strs [label]} (:params req)
-        {:strs [filter]} (:params req)
-        html (s/stream)]
+  (let [{:strs [label filter]} (:params req)]
     (swap! db update :todos conj {:id (gensym "todo")
                                   :label label
                                   :completed false})
-    (d/future
-      (dom/render-stream html #(app {:filter (keyword filter)}))
-      (s/close! html))
     {:status 200
      :headers {"content-type" "text/html"}
-     :body html}))
+     :body (render-app {:filter (keyword filter)})}))
 
 (defn partial-delete-todo-handler
   [req]
   (let [{:keys [id]} (:path-params req)
-        {:strs [filter]} (:params req)
-        html (s/stream)]
+        {:strs [filter]} (:params req)]
     (swap! db update :todos (fn [todos]
                               (->> todos
                                    (remove #(= id (str (:id %))))
                                    (vec))))
-    (d/future
-      (dom/render-stream html #(app {:filter (keyword filter)}))
-      (s/close! html))
     {:status 200
      :headers {"content-type" "text/html"}
-     :body html}))
+     :body (render-app {:filter (keyword filter)})}))
 
 (defn partial-update-todo-handler
   [req]
   (let [{:keys [id]} (:path-params req)
-        {:strs [filter completed label]} (:params req)
-        html (s/stream)]
+        {:strs [filter completed label]} (:params req)]
     (swap! db update :todos
            (fn [todos]
              (mapv
@@ -225,12 +213,9 @@
                     (some? label) (assoc :label label))
                   todo))
               todos)))
-    (d/future
-      (dom/render-stream html #(app {:filter (keyword filter)}))
-      (s/close! html))
     {:status 200
      :headers {"content-type" "text/html"}
-     :body html}))
+     :body (render-app {:filter (keyword filter)})}))
 
 (defn edit-todo
   [id]
@@ -251,36 +236,25 @@
 
 (defn partial-edit-todo
   [req]
-  (let [{:keys [id]} (:path-params req)
-        html (s/stream)]
-    (prn :edit)
-    (d/future
-      (dom/render-stream html #(edit-todo id))
-      (s/close! html))
+  (let [{:keys [id]} (:path-params req)]
     {:status 200
      :headers {"content-type" "text/html"}
-     :body html}))
+     :body (dom/render-string #(edit-todo id))}))
 
 (defn partial-clear-handler
   [req]
-  (let [html (s/stream)]
-    (swap! db update :todos (fn [todos]
-                              (->> todos
-                                   (filter #(not (:completed %)))
-                                   (vec))))
-    (d/future
-      (dom/render-stream
-       html #(app {:filter (keyword
-                            (get-in req [:params "filter"]))}))
-      (s/close! html))
-    {:status 200
-     :headers {"content-type" "text/html"}
-     :body html}))
+  (swap! db update :todos (fn [todos]
+                            (->> todos
+                                 (filter #(not (:completed %)))
+                                 (vec))))
+  {:status 200
+   :headers {"content-type" "text/html"}
+   :body (render-app {:filter (keyword
+                               (get-in req [:params "filter"]))})})
 
 (defn partial-toggle-all-handler
   [req]
-  (let [{:strs [toggle-all]} (:params req)
-        html (s/stream)]
+  (let [{:strs [toggle-all]} (:params req)]
     (swap! db update :todos
            (fn [todos]
              (->> todos
@@ -288,14 +262,10 @@
                                               "on" true
                                               false)))
                   (vec))))
-    (d/future
-      (dom/render-stream
-       html #(app {:filter (keyword
-                            (get-in req [:params "filter"]))}))
-      (s/close! html))
     {:status 200
      :headers {"content-type" "text/html"}
-     :body html}))
+     :body (render-app {:filter (keyword
+                            (get-in req [:params "filter"]))})}))
 
 (def router
   (ring/router
@@ -331,6 +301,13 @@
                         coercion/coerce-response-middleware
                         ;; coercing request parameters
                         coercion/coerce-request-middleware]}}))
+
+(declare server)
+
+(when-not (instance? clojure.lang.Var$Unbound server)
+  (prn "closing")
+  (.close server)
+  (netty/wait-for-close server))
 
 (def server
   (http/start-server
