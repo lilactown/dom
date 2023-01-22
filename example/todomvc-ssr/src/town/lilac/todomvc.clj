@@ -21,7 +21,6 @@
                         :id (gensym "todo")
                         :completed false}]}))
 
-
 (defn todo-list
   [{:keys [filter]}]
   (dom/section
@@ -31,8 +30,7 @@
                :type "checkbox"
                :name "toggle-all"
                :hx-post "partial/toggle-all"
-               :hx-target ".todoapp"
-               :hx-swap "outerHTML"
+               :hx-target "#root"
                :checked (every? #(:completed %) (:todos @db))})
    (dom/label {:for "toggle-all"} (dom/text "Mark all as complete"))
    (dom/ul
@@ -51,8 +49,7 @@
                     :checked (:completed todo)
                     :name "completed"
                     :hx-put (str "partial/todo/" (:id todo))
-                    :hx-target ".todoapp"
-                    :hx-swap "outerHTML"})
+                    :hx-target "#root"})
         (dom/label
          {:hx-get (str "partial/todo/" (:id todo) "/edit")
           :hx-trigger "dblclick"
@@ -61,11 +58,10 @@
          (dom/text (:label todo)))
         (dom/button {:class "destroy"
                      :hx-delete (str "partial/todo/" (:id todo))
-                     :hx-target ".todoapp"
-                     :hx-swap "outerHTML"})))))))
+                     :hx-target "#root"})))))))
 
 (defn app
-  [{:keys [filter]}]
+  [{:keys [filter auto-focus?]}]
   (dom/section
     {:class "todoapp"
      :hx-vals (str "{\"filter\": \"" (name filter) "\"}")}
@@ -77,12 +73,11 @@
        :method "POST"
        ;; JS enabled
        :hx-post "/partial/todo"
-       :hx-target ".todoapp"
-       :hx-swap "outerHTML"}
+       :hx-target "#root"}
       (dom/input {:type "text"
                   :class "new-todo"
                   :name "label"
-                  :autofocus true
+                  :autofocus auto-focus?
                   :autocomplete "off"
                   :placeholder "What needs to be done?"})))
     (todo-list {:filter filter})
@@ -100,28 +95,24 @@
                {:class (when (= filter :all) "selected")
                 :href "?filter=all"
                 :hx-get "partial/todo?filter=all"
-                :hx-target ".todoapp"
-                :hx-swap "outerHTML"}
+                :hx-target "#root"}
                (dom/text "All")))
       (dom/li (dom/a
                {:class (when (= filter :active) "selected")
                 :href "?filter=active"
                 :hx-get "partial/todo?filter=active"
-                :hx-target ".todoapp"
-                :hx-swap "outerHTML"}
+                :hx-target "#root"}
                (dom/text "Active")))
       (dom/li (dom/a
                {:class (when (= filter :complete) "selected")
                 :href "?filter=complete"
                 :hx-get "partial/todo?filter=complete"
-                :hx-target ".todoapp"
-                :hx-swap "outerHTML"}
+                :hx-target "#root"}
                (dom/text "Complete"))))
      (dom/button
       {:class "clear-completed"
        :hx-post "partial/clear"
-       :hx-target ".todoapp"
-       :hx-swap "outerHTML"}
+       :hx-target "#root"}
       (dom/text "Clear completed")))))
 
 (defn page
@@ -132,10 +123,9 @@
    (dom/title "TodoMVC")
    (dom/link {:rel "stylesheet" :href "assets/todomvc-common/base.css"})
    (dom/link {:rel "stylesheet" :href "assets/todomvc-app-css/index.css"})
-   (dom/script {:src "https://unpkg.com/htmx.org@1.8.5"})
-   #_(dom/script {:type "module" :src "https://cdn.skypack.dev/@hotwired/turbo"}))
+   (dom/script {:src "https://unpkg.com/htmx.org@1.8.5"}))
   (dom/body
-   (app {:filter filter})
+   (dom/div {:id "root"} (app {:filter filter :auto-focus? true}))
    (dom/script {:src "assets/todomvc-common/base.js"})))
 
 (defn page-handler
@@ -160,11 +150,7 @@
 
 (defn render-app
   [opts]
-  (let [html (s/stream)]
-    (d/future
-      (dom/render-stream html #(app opts))
-      (s/close! html))
-    html))
+  (dom/render-string #(app opts)))
 
 (defn partial-todos-handler
   [req]
@@ -223,8 +209,7 @@
    {:class "todo editing" :id id}
    (dom/form
     {:hx-put (str "partial/todo/" id)
-     :hx-target ".todoapp"
-     :hx-swap "outerHTML"}
+     :hx-target "#root"}
     (dom/input {:class "edit"
                 :type "text"
                 :name "label"
