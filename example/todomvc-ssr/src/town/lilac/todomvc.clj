@@ -21,6 +21,39 @@
                         :id (gensym "todo")
                         :completed false}]}))
 
+(defn todo-item
+  [{:keys [label id completed editing?]}]
+  (dom/li
+   {:class (if editing? "todo editing" "todo") :id id}
+   (dom/div
+    {:class "view"}
+    (dom/input {:class "toggle"
+                :type "checkbox"
+                :checked completed
+                :name "completed"
+                :hx-put (str "partial/todo/" id)
+                :hx-target "#root"})
+    (dom/label
+     {:hx-get (str "partial/todo/" id "/edit")
+      :hx-trigger "dblclick"
+      :hx-target (str "#" id)
+      :hx-swap "outerHTML"}
+     (dom/text label))
+    (dom/button {:class "destroy"
+                 :hx-delete (str "partial/todo/" id)
+                 :hx-target "#root"}))
+   (dom/form
+     {:hx-put (str "partial/todo/" id)
+      :hx-target "#root"}
+     (dom/input {:class "edit"
+                 :type "text"
+                 :name "label"
+                 :hx-get "partial/todo"
+                 :hx-target "#root"
+                 :hx-trigger "blur"
+                 :autofocus true
+                 :value label}))))
+
 (defn todo-list
   [{:keys [filter]}]
   (dom/section
@@ -40,25 +73,7 @@
                     :all true
                     :active (not (:completed todo))
                     :complete (:completed todo))]
-      (dom/li
-       {:class "todo" :id (:id todo)}
-       (dom/div
-        {:class "view"}
-        (dom/input {:class "toggle"
-                    :type "checkbox"
-                    :checked (:completed todo)
-                    :name "completed"
-                    :hx-put (str "partial/todo/" (:id todo))
-                    :hx-target "#root"})
-        (dom/label
-         {:hx-get (str "partial/todo/" (:id todo) "/edit")
-          :hx-trigger "dblclick"
-          :hx-target (str "#" (:id todo))
-          :hx-swap "outerHTML"}
-         (dom/text (:label todo)))
-        (dom/button {:class "destroy"
-                     :hx-delete (str "partial/todo/" (:id todo))
-                     :hx-target "#root"})))))))
+      (todo-item todo)))))
 
 (defn app
   [{:keys [filter auto-focus?]}]
@@ -152,12 +167,17 @@
   [opts]
   (dom/render-string #(app opts)))
 
+(defn ensure-vec
+  [v]
+  (if (vector? v) v [v]))
+
 (defn partial-todos-handler
   [req]
   {:status 200
    :headers {"content-type" "text/html"}
    :body (render-app {:filter (-> req
-                                  (get-in [:params "filter"] "all")
+                                  (get-in [:params "filter"] ["all"])
+                                  (ensure-vec)
                                   (first)
                                   (keyword))})})
 
@@ -203,28 +223,19 @@
      :headers {"content-type" "text/html"}
      :body (render-app {:filter (keyword filter)})}))
 
-(defn edit-todo
-  [id]
-  (dom/li
-   {:class "todo editing" :id id}
-   (dom/form
-    {:hx-put (str "partial/todo/" id)
-     :hx-target "#root"}
-    (dom/input {:class "edit"
-                :type "text"
-                :name "label"
-                :value (->> @db
-                            (:todos)
-                            (filter #(= id (str (:id %))))
-                            (first)
-                            (:label))}))))
-
 (defn partial-edit-todo
   [req]
   (let [{:keys [id]} (:path-params req)]
     {:status 200
      :headers {"content-type" "text/html"}
-     :body (dom/render-string #(edit-todo id))}))
+     :body (dom/render-string
+            #(todo-item
+              (-> @db
+                  :todos
+                  (->> (filter (fn [t] (= id (str (:id t))))))
+                  (doto prn)
+                  (first)
+                  (assoc :editing? true))))}))
 
 (defn partial-clear-handler
   [req]
