@@ -130,6 +130,15 @@
        :hx-target "#root"}
       (dom/text "Clear completed")))))
 
+(def sleep-sentinel nil)
+
+(defn sleep
+  [ms]
+  (or sleep-sentinel
+      (d/chain
+       (d/future (Thread/sleep ms))
+       (fn [_] (alter-var-root #'sleep-sentinel (constantly true))))))
+
 (defn page
   [{:keys [filter]}]
   (dom/html5)
@@ -138,13 +147,25 @@
    (dom/title "TodoMVC")
    (dom/link {:rel "stylesheet" :href "assets/todomvc-common/base.css"})
    (dom/link {:rel "stylesheet" :href "assets/todomvc-app-css/index.css"})
-   (dom/script {:src "https://unpkg.com/htmx.org@1.8.5"}))
+   (dom/script {:src "https://unpkg.com/htmx.org@1.8.5"})
+   (dom/script {:src "assets/js/tld.js"}))
   (dom/body
-   (dom/div {:id "root"} (app {:filter filter :auto-focus? true}))
-   (dom/script {:src "assets/todomvc-common/base.js"})))
+   (dom/async
+    (dom/div {:id "root"} (app {:filter filter :auto-focus? true}))
+    (dom/use (sleep 1000))
+    (fallback
+     (dom/section
+      {:class "todoapp"}
+      (dom/header
+       {:class "header"}
+       (dom/h1 (dom/text "todos"))
+       (dom/text "Loading...")))))
+   (dom/script {:src "assets/todomvc-common/base.js"})
+   ))
 
 (defn page-handler
   [req]
+  (alter-var-root #'sleep-sentinel (constantly nil))
   (let [html (s/stream)
         filter (get-in req [:params "filter"] "all")]
     (d/future
