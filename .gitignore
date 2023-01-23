@@ -1,5 +1,6 @@
-/.cpcache/
-/.shadow-cljs/
-/node_modules/
-/package-lock.json
+.cpcache/
+.shadow-cljs/
+node_modules/
+package-lock.json
 .clj-kondo/.cache/
+cljs-runtime/

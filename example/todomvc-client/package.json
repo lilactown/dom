@@ -1,0 +1,20 @@
+{
+  "name": "todomvc-client",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "shadow-cljs": "^2.20.20"
+  },
+  "dependencies": {
+    "incremental-dom": "^0.7.0",
+    "todomvc-app-css": "^2.4.2",
+    "todomvc-common": "^1.0.5"
+  }
+}
