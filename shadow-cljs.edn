@@ -1,1 +1,7 @@
-{:deps {:aliases [:dev]}}
+{:deps {:aliases [:dev]}
+ :builds {:runtime {:target :browser
+                    :output-dir "resources/town/lilac/dom"
+                    :asset-path "/"
+                    :modules {:runtime {:entries [town.lilac.dom.runtime]}}
+                    :devtools {:http-root "resources/town/lilac/dom"
+                               :http-port 3456}}}}

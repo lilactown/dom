@@ -1,0 +1,5 @@
+{:paths ["src" "resources"]
+ :deps {town.lilac/dom {:local/root "../../"}
+        manifold/manifold {:mvn/version "0.3.0"}
+        aleph/aleph {:mvn/version "0.6.0"}
+        metosin/reitit {:mvn/version "0.5.18"}}}
