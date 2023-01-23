@@ -44,8 +44,9 @@
   (-flush! [_]
     (s/stream->seq sink))
   (-await! [_ d f]
+    (set! async-id (inc async-id))
     (set! deferred-queue (conj! deferred-queue [async-id d f]))
-    (set! async-id (inc async-id))))
+    async-id))
 
 (defn put!
   [& parts]
