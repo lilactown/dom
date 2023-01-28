@@ -92,7 +92,6 @@
 (defn flush!
   []
   (doseq [data *buffer*]
-    (prn data)
     (case (first data)
       "open" (apply open* (.slice data 1))
       "close" (dom/elementClose (second data))
@@ -111,6 +110,20 @@
     (dom/skip)
     (dom/elementClose "html-blob")))
 
+;; https://github.com/google/incremental-dom/issues/314
+(defn html-comment
+  [text]
+  (prn text)
+  (let [cur-el (dom/currentElement)
+        ptr (dom/currentPointer)
+        el (if (and (some? ptr) (= "#comment" (.-nodeName ptr)))
+             ptr
+             (as-> (js/document.createComment "") el
+               (.insertBefore cur-el el ptr)))]
+    (set! (.-data el) text)
+    (dom/skipNode)
+    el))
+
 
 (defn patch
   "Given a root DOM element `root` and a function `f` that contains DOM
@@ -122,8 +135,26 @@
 (def get-current-element dom/currentElement)
 
 (defn patch-outer
+  "Like `patch`, but replaces the root element completely with the result of
+  `f`."
   [root f]
   (dom/patchOuter root f))
+
+
+(defn patch-range
+  "Like `patch-outer`, but takes a beginning element `el`, end element `el2` and
+  replaces them in the dom with the result of `f`."
+  [^js el1 ^js el2 f]
+  (let [parent (.-parentNode el1)]
+    (loop [el el1]
+      (if (some? el)
+        (let [sibling (.-nextSibling el)]
+          (.removeChild parent el)
+          (if (identical? el2 sibling)
+            (patch-outer sibling f)
+            (recur sibling)))
+        (throw (ex-info "Reached last sibling and never found el2"
+                        {:el1 el1 :el2 el2}))))))
 
 
 (defn use
@@ -195,6 +226,8 @@
      (macro/async
       ($ "div" {:style {:border "1px solid blue"}}
          ($ "textarea" (text (pr-str (use (fetcher))))))
-      (fallback ($ "div" (text "loading..."))))))
+      (fallback
+       (text "foo")
+       ($ "div" (text "loading..."))))))
 
  )
