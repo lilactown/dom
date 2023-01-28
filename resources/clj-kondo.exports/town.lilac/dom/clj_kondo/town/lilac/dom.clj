@@ -50,13 +50,12 @@
         fallback (last body)
         body (rest (drop-last body))]
     (if (= 'fallback (first (api/sexpr fallback)))
-      (doto (with-meta
-              (api/list-node
-               `(try
-                  ~@body
-                  ~(api/list-node
-                    `(catch js/Promise p#
-                       ~@(rest (:children fallback))))))
-              (meta node))
-        prn)
+      {:node (with-meta
+               (api/list-node
+                `(try
+                   ~@body
+                   ~(api/list-node
+                     `(catch js/Promise p#
+                        ~@(rest (:children fallback))))))
+               (meta node))}
       (throw (ex-info "Last expr in async must be fallback" {:node node})))))
