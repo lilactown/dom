@@ -195,9 +195,9 @@ Example:
 (defn app
   []
   (let [data (d/use (fetch-data))]
-   (d/div {:style {:border "1px solid blue"}}
-    (d/textarea
-     (d/text (pr-str data))))))
+    (d/div {:style {:border "1px solid blue"}}
+     (d/textarea
+      (d/text (pr-str data))))))
 
 (patch
  (js/document.getElementById "root")
