@@ -1,4 +1,5 @@
-{:hooks   {:analyze-call {town.lilac.dom/$              clj-kondo.town.lilac.dom/$
+{:hooks   {:analyze-call {town.lilac.dom/async          clj-kondo.town.lilac.dom/async
+                          town.lilac.dom/$              clj-kondo.town.lilac.dom/$
                           town.lilac.dom/a              clj-kondo.town.lilac.dom/dom
                           town.lilac.dom/abbr           clj-kondo.town.lilac.dom/dom
                           town.lilac.dom/address        clj-kondo.town.lilac.dom/dom
@@ -258,4 +259,6 @@
                           town.lilac.dom.server/ul             clj-kondo.town.lilac.dom/dom
                           town.lilac.dom.server/var            clj-kondo.town.lilac.dom/dom
                           town.lilac.dom.server/video          clj-kondo.town.lilac.dom/dom
-                          town.lilac.dom.server/wbr            clj-kondo.town.lilac.dom/dom}}}
+                          town.lilac.dom.server/wbr            clj-kondo.town.lilac.dom/dom}}
+ :lint-as {town.lilac.dom/try clojure.core/try
+           town.lilac.server.dom/try clojure.core/try}}

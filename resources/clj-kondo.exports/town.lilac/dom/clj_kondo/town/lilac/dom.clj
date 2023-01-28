@@ -42,3 +42,21 @@
         expanded (api/list-node
                   (list* fn-sym new-props children))]
     {:node (with-meta expanded (meta node))}))
+
+
+(defn async
+  [{:keys [node]}]
+  (let [body (:children node)
+        fallback (last body)
+        body (rest (drop-last body))]
+    (if (= 'fallback (first (api/sexpr fallback)))
+      (doto (with-meta
+              (api/list-node
+               `(try
+                  ~@body
+                  ~(api/list-node
+                    `(catch js/Promise p#
+                       ~@(rest (:children fallback))))))
+              (meta node))
+        prn)
+      (throw (ex-info "Last expr in async must be fallback" {:node node})))))
