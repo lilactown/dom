@@ -122,7 +122,6 @@
        (ex-info "async expr requires (fallback ,,,) as last expression in body"
                 {:body body})))
     `((fn ~fn-sym []
-        (prn ~fn-sym)
         (let [buffer# (cljs.core/array)
               parent# (get-current-element)]
           (try
@@ -130,6 +129,8 @@
             (catch js/Promise e#
               (let [fallback-id# (gensym "fallback")
                     ;; TODO assert that fallback is a single element
-                    el# ~@(rest fallback)]
+                    cmt1# (html-comment (str fallback-id#))
+                    el# (do ~@(rest fallback))
+                    cmt2# (html-comment (str "/" fallback-id#))]
                 (.then e# (fn [result#]
-                            (patch el# ~fn-sym)))))))))))
+                            (patch-range cmt1# cmt2# ~fn-sym)))))))))))
