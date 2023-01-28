@@ -158,6 +158,8 @@
 
 
 (defn use
+  "If `v` is a Promise, throws an exception that should be caught by a wrapping
+  `async` call somewhere in the call stack above it. Otherwise, returns `v`."
   [v]
   (if (= js/Promise (type v))
     (throw v)

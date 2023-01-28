@@ -169,3 +169,42 @@ Here is the **correct code**:
   baz
   (close "div"))
 ```
+
+### Async
+
+The `async` macro and `use` function allows you to declaratively have your view
+depend on a value that needs to be fetched and cached across the network,
+showing a fallback while it's loading.
+
+Example:
+
+```clojure
+(def cache nil)
+
+(defn fetch-data
+  "If the data is present in the cache, fetches it and returns a promise.
+  Otherwise, returns the cached result."
+  []
+  (if (nil? cache)
+    (-> (js/Promise. (fn [res]
+                       (js/setTimeout #(res {:foo "bar"})
+                                      2000)))
+        (.then (fn [v] (set! cache v))))
+    cache))
+
+(defn app
+  []
+  (let [data (use (fetch-data))]
+   (d/div {:style {:border "1px solid blue"}}
+    (d/textarea
+     (text (pr-str data))))))
+
+(patch
+ (js/document.getElementById "root")
+ (fn []
+   (d/div (text "hi"))
+   (async
+    (app)
+    (fallback
+     (d/div (text "loading..."))))))
+```
