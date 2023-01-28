@@ -130,6 +130,7 @@
                           town.lilac.dom/video          clj-kondo.town.lilac.dom/dom
                           town.lilac.dom/wbr            clj-kondo.town.lilac.dom/dom
 
+                          town.lilac.dom.server/async          clj-kondo.town.lilac.dom/async
                           town.lilac.dom.server/$              clj-kondo.town.lilac.dom/$
                           town.lilac.dom.server/a              clj-kondo.town.lilac.dom/dom
                           town.lilac.dom.server/abbr           clj-kondo.town.lilac.dom/dom
