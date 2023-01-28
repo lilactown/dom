@@ -12,7 +12,7 @@ The library is available via git deps
 
 ```clojure
 town.lilac/dom {:git/url "https://github.com/lilactown/dom"
-                :git/sha "467030ed313813e7ea403dde0758b132b9c0d103"}
+                :git/sha "77de341c5e6ecb6687e03b4139a70c6f8edc49fa"}
 ```
 
 ## Usage
