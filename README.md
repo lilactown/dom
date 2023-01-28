@@ -194,17 +194,17 @@ Example:
 
 (defn app
   []
-  (let [data (use (fetch-data))]
+  (let [data (d/use (fetch-data))]
    (d/div {:style {:border "1px solid blue"}}
     (d/textarea
-     (text (pr-str data))))))
+     (d/text (pr-str data))))))
 
 (patch
  (js/document.getElementById "root")
  (fn []
    (d/div (text "hi"))
-   (async
+   (d/async
     (app)
     (fallback
-     (d/div (text "loading..."))))))
+     (d/div (d/text "loading..."))))))
 ```
