@@ -19,13 +19,6 @@
 #_(style-str {"color" "blue" :flex "grow"})
 
 
-(defn seq-to-class [class]
-  (->> class
-       (remove nil?)
-       (map str)
-       (string/join " ")))
-
-
 (defn attrs->str
   [props]
   (reduce-kv
@@ -36,9 +29,14 @@
         :style (str attrs " style=\"" (style-str v) "\"")
         :id (str attrs " id=\"" v "\"")
         :class (str attrs " class=\""
-                    (if (sequential? v)
-                      (seq-to-class v)
-                      v) "\"")
+                    (cond
+                      (map? v) (->> (filter #(val %) v)
+                                    keys
+                                    (string/join " "))
+                      (coll? v) (->> (remove nil? v)
+                                     (string/join " "))
+                      true v)
+                     "\"")
         :value (if (some? v)
                  (str attrs " value=\"" v "\"")
                  attrs)

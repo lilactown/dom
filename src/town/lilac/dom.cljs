@@ -40,6 +40,7 @@
   (:refer-clojure :exclude [use flush])
   (:require
    ["incremental-dom" :as dom]
+   [clojure.string :as string]
    [goog.object :as gobj])
   (:require-macros
    [town.lilac.dom :as macro :refer [$]]))
@@ -51,7 +52,17 @@
   [tag key attrs]
   (dom/elementOpenStart tag key nil)
   (doseq [[k v] attrs]
-    (dom/attr (name k) (clj->js v)))
+    (case k
+      :class (dom/attr
+              "class"
+              (cond
+                (map? v) (->> (filter #(val %) v)
+                              keys
+                              (string/join " "))
+                (coll? v) (->> (remove nil? v)
+                               (string/join " "))
+                true v))
+      (dom/attr (name k) (clj->js v))))
   (dom/elementOpenEnd))
 
 
@@ -113,7 +124,6 @@
 ;; https://github.com/google/incremental-dom/issues/314
 (defn html-comment
   [text]
-  (prn text)
   (let [cur-el (dom/currentElement)
         ptr (dom/currentPointer)
         el (if (and (some? ptr) (= "#comment" (.-nodeName ptr)))
@@ -146,15 +156,14 @@
   replaces them in the dom with the result of `f`."
   [^js el1 ^js el2 f]
   (let [parent (.-parentNode el1)]
-    (loop [el el1]
+    (loop [el (.-nextSibling el1)]
       (if (some? el)
         (let [sibling (.-nextSibling el)]
           (.removeChild parent el)
           (if (identical? el2 sibling)
-            (patch-outer sibling f)
+            (recur nil)
             (recur sibling)))
-        (throw (ex-info "Reached last sibling and never found el2"
-                        {:el1 el1 :el2 el2}))))))
+        (patch-outer el1 f)))))
 
 
 (defn use
