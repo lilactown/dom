@@ -62,6 +62,9 @@
                 (coll? v) (->> (remove nil? v)
                                (string/join " "))
                 true v))
+      ;; boolean fields
+      (:disabled :required) (when v
+                              (dom/attr (name k) (boolean v)))
       (dom/attr (name k) (clj->js v))))
   (dom/elementOpenEnd))
 
