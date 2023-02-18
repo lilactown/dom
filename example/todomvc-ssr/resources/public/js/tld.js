@@ -1,7 +1,6 @@
 function $TLD(a, b) {
    a = document.getElementById(a);
     b = document.getElementById(b);
-    console.log(a, b)
    b.parentNode.removeChild(b);
    if (a) {
      a = a.previousSibling;
