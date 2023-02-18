@@ -160,8 +160,7 @@
        {:class "header"}
        (dom/h1 (dom/text "todos"))
        (dom/text "Loading...")))))
-   (dom/script {:src "assets/todomvc-common/base.js"})
-   ))
+   (dom/script {:src "assets/todomvc-common/base.js"})))
 
 (defn page-handler
   [req]
